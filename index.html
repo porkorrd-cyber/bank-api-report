@@ -114,6 +114,7 @@ dialog input:focus{outline:2px solid var(--brand);outline-offset:1px}
  .date,.acts,.sw{grid-column:1/-1}
  .date{text-align:left;min-width:0}
  .stat .n{font-size:28px}
+ .sw{white-space:normal}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
@@ -275,9 +276,9 @@ function renderNo(s){
   li.append(mk('span','chip',d.code),nameEl(d));
   const lab=mk('label','sw');
   const cb=mk('input');cb.type='checkbox';cb.checked=!!ticked[d.bank];
-  cb.setAttribute('aria-label','ธนาคารแจ้งว่าเชื่อมต่อแล้ว: '+d.bank);
+  cb.setAttribute('aria-label','ธนาคารแจ้งเชื่อมต่อแล้ว เลือกวันที่เพื่อยืนยัน: '+d.bank);
   cb.addEventListener('change',()=>{ticked[d.bank]=cb.checked;if(cb.checked&&!picked[d.bank])picked[d.bank]=todayStr();renderNo(split());});
-  lab.append(cb,mk('span','tr'),mk('span',null,'ธนาคารแจ้งว่าเชื่อมต่อแล้ว'));
+  lab.append(cb,mk('span','tr'),mk('span',null,'ธนาคารแจ้งเชื่อมต่อแล้ว – เลือกวันที่เพื่อยืนยัน'));
   li.append(lab);
   if(ticked[d.bank]){
    const box=mk('div','move');
