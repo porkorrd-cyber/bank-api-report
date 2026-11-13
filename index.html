@@ -71,7 +71,6 @@ button:disabled{opacity:.5;cursor:progress}
 .no .chip{background:#fde7c7;color:#92400e}
 .nm{font-weight:500;overflow-wrap:anywhere}
 .yes .nm::before{content:'✓';color:var(--ok);font-weight:700;margin-right:8px}
-.ab{display:inline-block;margin-left:8px;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#e8ecf7;color:var(--muted);vertical-align:middle;white-space:nowrap}
 .date{min-width:9em;text-align:right;color:var(--muted);white-space:nowrap}
 .bk-day{display:inline-block;min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
 .bk-mon{margin-left:.35em}
@@ -197,7 +196,7 @@ function renderTop(s){
  const dots=$('#dots');dots.replaceChildren();
  BANKS.slice().sort((a,b)=>a.code.localeCompare(b.code)).forEach((b)=>{
   const d=mk('button','dot'+(okSet.has(b.code)?' ok':''));d.type='button';
-  d.title=b.code+' '+b.abbr+' '+b.bank+(okSet.has(b.code)?' · เชื่อมต่อแล้ว':' · อยู่ระหว่างการเชื่อมต่อ');
+  d.title=b.code+' '+b.bank+(okSet.has(b.code)?' · เชื่อมต่อแล้ว':' · อยู่ระหว่างการเชื่อมต่อ');
   d.setAttribute('aria-label',d.title);
   d.addEventListener('click',()=>{query=b.code;filter='all';$('#q').value=query;render();$('#cols').scrollIntoView({behavior:'smooth',block:'start'});});
   dots.append(d);
@@ -225,7 +224,7 @@ async function save(code,date){
   busy(false);return true;
  }catch(e){toast('บันทึกไม่สำเร็จ กรุณาลองใหม่',true);busy(false);return false;}
 }
-const nameEl=(d)=>{const e=mk('span','nm');e.append(document.createTextNode(d.bank));if(d.abbr)e.append(mk('span','ab',d.abbr));return e;};
+const nameEl=(d)=>mk('span','nm',d.bank);
 const btn=(cls,text,fn,tip)=>{const b=mk('button','btn '+cls,text);b.type='button';if(tip)b.title=tip;b.addEventListener('click',fn);return b;};
 function markFlash(code){flash[code]=true;setTimeout(()=>{delete flash[code];},1500);}
 async function cancelBank(d){
