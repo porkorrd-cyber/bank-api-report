@@ -280,7 +280,8 @@ function renderNo(s){
   const cb=mk('input');cb.type='checkbox';cb.checked=!!ticked[d.bank];
   cb.setAttribute('aria-label','ธนาคารแจ้งเชื่อมต่อแล้ว เลือกวันที่เพื่อยืนยัน: '+d.bank);
   cb.addEventListener('change',()=>{ticked[d.bank]=cb.checked;if(cb.checked&&!picked[d.bank])picked[d.bank]=todayStr();renderNo(split());});
-  lab.append(cb,mk('span','tr'),mk('span',null,'ธนาคารแจ้งเชื่อมต่อแล้ว – เลือกวันที่เพื่อยืนยัน'));
+  lab.append(cb,mk('span','tr'));
+  lab.title='ธนาคารแจ้งเชื่อมต่อแล้ว';
   const wrap=mk('div','swrap');wrap.append(mk('span','st','อยู่ระหว่างการเชื่อมต่อ'),lab);
   li.append(wrap);
   if(ticked[d.bank]){
