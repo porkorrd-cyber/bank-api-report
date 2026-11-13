@@ -105,7 +105,7 @@ function renderYes(s){
   tr.append(mk('td','bk-code',d.code),mk('td','bk-yes-b',d.bank));
   const dt=mk('td');dateInto(dt,d.date);tr.append(dt);
   const act=mk('td');
-  if(d.undo){const b=mk('button','bk-undo','ยกเลิก');b.type='button';b.addEventListener('click',()=>{delete moved[d.bank];delete ticked[d.bank];delete picked[d.bank];render();});act.append(b);}
+  if(d.undo){const b=mk('button','bk-undo','ยกเลิก');b.type='button';b.addEventListener('click',async()=>{if(!(await save(d.code,null)))return;delete moved[d.bank];delete ticked[d.bank];delete picked[d.bank];render();});act.append(b);}
   tr.append(act);tb.append(tr);
  });
  if(!rows.length){const tr=mk('tr'),td=mk('td',null,'ยังไม่มีธนาคารที่เชื่อมต่อแล้ว');td.colSpan=4;tr.append(td);tb.append(tr);}
@@ -129,7 +129,7 @@ function renderNo(s){
    inp.setAttribute('aria-label','วันที่เชื่อมต่อ: '+d.bank);
    inp.addEventListener('change',()=>{if(inp.value&&inp.validity.valid){picked[d.bank]=inp.value;inp.style.borderColor='';}});
    const btn=mk('button','bk-btn','ยืนยัน ย้ายไปฝั่งเชื่อมต่อแล้ว');btn.type='button';
-   btn.addEventListener('click',()=>{if(inp.value&&inp.validity.valid){moved[d.bank]=inp.value;render();}else{inp.style.borderColor='var(--color-bad)';inp.focus();}});
+   btn.addEventListener('click',async()=>{if(inp.value&&inp.validity.valid){if(!(await save(d.code,inp.value)))return;moved[d.bank]=inp.value;render();}else{inp.style.borderColor='var(--color-bad)';inp.focus();}});
    box.append(inp,btn);td.append(box);
   }
   tr.append(td);tb.append(tr);
@@ -137,7 +137,27 @@ function renderNo(s){
  if(!rows.length){const tr=mk('tr'),t2=mk('td',null,'ทุกธนาคารเชื่อมต่อแล้ว');t2.colSpan=3;tr.append(t2);tb.append(tr);}
 }
 function render(){const s=split();renderTop(s);renderYes(s);renderNo(s);}
+const API='https://script.google.com/macros/s/AKfycbyCzfFzyQ5sms9pdH0DLfYI0_-yfDfi67KDBIF140UYcMthvJ4SBg2uk-uL1SXpyowf/exec';
+let pin='';
+try{pin=sessionStorage.getItem('bkpin')||'';}catch(e){}
+async function save(code,date){
+ if(!pin){pin=prompt('ใส่รหัส PIN เพื่อบันทึก')||'';if(!pin)return false;}
+ try{
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({pin:pin,code:code,date:date})});
+  const j=await r.json();
+  if(!j.ok){if(j.error==='pin'){pin='';alert('รหัส PIN ไม่ถูกต้อง');}else alert('บันทึกไม่สำเร็จ');return false;}
+  try{sessionStorage.setItem('bkpin',pin);}catch(e){}
+  return true;
+ }catch(e){alert('บันทึกไม่สำเร็จ กรุณาลองใหม่');return false;}
+}
+async function load(){
+ try{
+  const r=await fetch(API);const j=await r.json();
+  if(j&&j.ok){BANKS.forEach((b)=>{if(b.status!==YES&&j.moved[b.code])moved[b.bank]=j.moved[b.code];});render();}
+ }catch(e){}
+}
 render();
+load();
 </script>
 </body>
 </html>
