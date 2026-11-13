@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>รายงานความคืบหน้าการเชื่อมต่อข้อมูลหมายเลขบัญชีธนาคาร</title>
+<style>
+:root{
+ --color-fg:#1f1e1d;--color-fg-muted:#6b6a68;--color-bg:#ffffff;--color-panel:#faf9f5;--color-border-line:#e1ded6;
+ --color-ok:#1f9d55;--color-warn:#d98a00;--color-bad:#c0392b;
+ --fs-body:15px;--fs-caption:13px;--fs-heading:18px;--fs-title:28px;
+ --gap-sm:8px;--gap-md:16px;--gap-lg:24px;--pad-md:12px;--pad-lg:20px;--radius:8px;
+ --font:'Noto Sans Thai','Sarabun','Leelawadee UI',Tahoma,system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font);font-size:var(--fs-body)}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px 40px}
+.bk{display:flex;flex-direction:column;gap:var(--gap-lg)}
+.bk h1{font-weight:500;font-size:var(--fs-title);text-align:center;margin:0 0 var(--gap-sm);line-height:1.35}
+.bk-lead{font-size:var(--fs-heading);line-height:1.6;margin:0;text-align:center}
+.bk-gauge{display:flex;align-items:center;gap:var(--gap-md)}
+.bk-gbar{flex:1;display:flex;gap:3px;padding:7px;border:3px solid var(--color-ok);border-radius:14px;background:color-mix(in srgb,var(--color-ok) 8%,var(--color-bg));box-shadow:0 0 16px color-mix(in srgb,var(--color-ok) 45%,transparent)}
+.bk-seg{flex:1;height:40px;border-radius:4px;background:color-mix(in srgb,var(--color-fg-muted) 20%,var(--color-bg))}
+.bk-seg.on{background:linear-gradient(180deg,color-mix(in srgb,var(--color-ok) 60%,white),var(--color-ok) 55%);box-shadow:0 0 8px color-mix(in srgb,var(--color-ok) 70%,transparent)}
+.bk-pct{font-size:48px;line-height:1;color:var(--color-ok);font-variant-numeric:tabular-nums;min-width:100px;text-align:right;font-weight:500}
+@media (prefers-reduced-motion:no-preference){.bk-seg.last{animation:bkpulse 1.8s ease-in-out infinite}}
+@keyframes bkpulse{0%,100%{opacity:1}50%{opacity:.55}}
+.bk-day{display:inline-block;min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
+.bk-mon{margin-left:.35em}
+.bk-vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--gap-md);align-items:start}
+.bk-col{border-radius:var(--radius);padding:var(--pad-lg);overflow:hidden}
+.bk-col-yes{background:color-mix(in srgb,var(--color-ok) 16%,var(--color-bg));border:2px solid var(--color-ok)}
+.bk-col-no{background:color-mix(in srgb,var(--color-warn) 10%,var(--color-bg));border:1px solid var(--color-warn)}
+.bk-band{display:flex;align-items:center;justify-content:space-between;margin:calc(-1*var(--pad-lg));margin-bottom:var(--gap-md);padding:var(--pad-md) var(--pad-lg);color:#fff;font-size:var(--fs-heading);font-weight:500}
+.bk-col-yes .bk-band{background:var(--color-ok)}
+.bk-col-no .bk-band{background:var(--color-warn)}
+.bk-band .n{font-size:36px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.bk-scroll{overflow-x:auto}
+.bk-table{width:100%;border-collapse:collapse;font-size:var(--fs-body)}
+.bk-table th{text-align:left;font-weight:500;color:var(--color-fg-muted);font-size:var(--fs-caption);padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.bk-table td{padding:8px;border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.bk-code{color:var(--color-fg-muted);white-space:nowrap}
+.bk-yes-b{font-weight:500}
+.bk-yes-b::before{content:'✓';color:var(--color-ok);font-weight:700;margin-right:8px}
+.bk-chk{display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}
+.bk-chk input{width:18px;height:18px;accent-color:var(--color-ok);cursor:pointer}
+.bk-move{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.bk-date{font:inherit;padding:4px 6px;border:1px solid var(--color-border-line);border-radius:var(--radius);background:var(--color-bg);color:var(--color-fg)}
+.bk-btn{font:inherit;font-size:var(--fs-caption);padding:5px 12px;border:0;border-radius:var(--radius);background:var(--color-ok);color:#fff;font-weight:500;cursor:pointer}
+.bk-undo{font:inherit;font-size:var(--fs-caption);padding:3px 10px;border:1px solid var(--color-border-line);border-radius:var(--radius);background:transparent;color:var(--color-fg-muted);cursor:pointer}
+.bk-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="bk">
+<header>
+<h1>รายงานความคืบหน้าการเชื่อมต่อข้อมูลหมายเลขบัญชีธนาคาร</h1>
+<p class="bk-lead">เชื่อมต่อแล้ว <b data-kind="connected">—</b> จาก <b data-kind="total">—</b> ธนาคาร (<b data-kind="pct">—</b>%) · อยู่ระหว่างการเชื่อมต่อ <b data-kind="pending">—</b> แห่ง</p>
+</header>
+<div class="bk-gauge" id="gauge"></div>
+<div class="bk-vs">
+<section class="bk-col bk-col-yes"><div class="bk-band"><span>✓ เชื่อมต่อแล้ว</span><span class="n" data-kind="connected">—</span></div>
+<div class="bk-scroll"><table class="bk-table"><thead><tr><th>รหัส</th><th>ธนาคาร</th><th>เชื่อมต่อเมื่อวันที่</th><th><span class="bk-sr">การดำเนินการ</span></th></tr></thead><tbody id="list-yes"></tbody></table></div></section>
+<section class="bk-col bk-col-no"><div class="bk-band"><span>อยู่ระหว่างการเชื่อมต่อ</span><span class="n" data-kind="pending">—</span></div>
+<div class="bk-scroll"><table class="bk-table"><thead><tr><th>รหัส</th><th>ธนาคาร</th><th>ธนาคารแจ้งว่าเชื่อมต่อแล้ว</th></tr></thead><tbody id="list-no"></tbody></table></div></section>
+</div>
+</div></div>
+<script>
+const BANKS=[{"code": "004", "bank": "ธนาคารกสิกรไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "011", "bank": "ธนาคารทหารไทยธนชาต", "status": "Live แล้ว", "target_date": "2026-10-07"}, {"code": "020", "bank": "ธนาคารสแตนดาร์ดชาร์เตอร์ด (ไทย)", "status": "Live แล้ว", "target_date": "2026-11-04"}, {"code": "022", "bank": "ธนาคารซีไอเอ็มบี ไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "025", "bank": "ธนาคารกรุงศรีอยุธยา", "status": "Live แล้ว", "target_date": "2026-11-11"}, {"code": "002", "bank": "ธนาคารกรุงเทพ", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "006", "bank": "ธนาคารกรุงไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "014", "bank": "ธนาคารไทยพาณิชย์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "024", "bank": "ธนาคารยูโอบี", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "030", "bank": "ธนาคารออมสิน", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "033", "bank": "ธนาคารอาคารสงเคราะห์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "034", "bank": "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "035", "bank": "ธนาคารเพื่อการส่งออกและนำเข้าแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "052", "bank": "ธนาคารแห่งประเทศจีน (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "066", "bank": "ธนาคารอิสลามแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "067", "bank": "ธนาคารทิสโก้", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "069", "bank": "ธนาคารเกียรตินาคินภัทร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "070", "bank": "ธนาคารไอซีบีซี (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "071", "bank": "ธนาคารไทยเครดิต", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "073", "bank": "ธนาคารแลนด์ แอนด์ เฮ้าส์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "098", "bank": "ธนาคารพัฒนาวิสาหกิจขนาดกลางและขนาดย่อมแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}];
+const YES='Live แล้ว';
+let moved={},ticked={},picked={};
+const $=(s)=>document.querySelector(s);
+const mk=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+function dateInto(td,s){
+ if(!s){td.textContent='—';return;}
+ const parts=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).formatToParts(new Date(String(s).slice(0,10)+'T00:00:00Z'));
+ const get=(t)=>(parts.find((p)=>p.type===t)||{}).value||'';
+ td.replaceChildren(mk('span','bk-day',get('day')),mk('span','bk-mon',get('month')),document.createTextNode(' '+get('year')));
+}
+function split(){
+ const yes=[],no=[];
+ BANKS.forEach((r)=>{
+  if(r.status===YES)yes.push({bank:r.bank,code:r.code,date:r.target_date,undo:false});
+  else if(moved[r.bank])yes.push({bank:r.bank,code:r.code,date:moved[r.bank],undo:true});
+  else no.push(r);
+ });
+ return {yes,no};
+}
+function renderTop(s){
+ const n=s.yes.length,t=n+s.no.length,pct=Math.round(100*n/t);
+ document.querySelectorAll('[data-kind]').forEach((e)=>{const k=e.dataset.kind;e.textContent=String(k==='connected'?n:k==='pending'?s.no.length:k==='total'?t:pct);});
+ const g=$('#gauge');g.replaceChildren();
+ g.setAttribute('role','img');g.setAttribute('aria-label','เชื่อมต่อแล้ว '+n+' จาก '+t+' ธนาคาร');
+ const bar=mk('div','bk-gbar');
+ for(let i=0;i<t;i++)bar.append(mk('i','bk-seg'+(i<n?' on':'')+(i===n-1?' last':'')));
+ g.append(bar,mk('div','bk-pct',pct+'%'));
+}
+function renderYes(s){
+ const tb=$('#list-yes');
+ const rows=[...s.yes].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||a.code.localeCompare(b.code));
+ tb.replaceChildren();
+ rows.forEach((d)=>{
+  const tr=mk('tr');
+  tr.append(mk('td','bk-code',d.code),mk('td','bk-yes-b',d.bank));
+  const dt=mk('td');dateInto(dt,d.date);tr.append(dt);
+  const act=mk('td');
+  if(d.undo){const b=mk('button','bk-undo','ยกเลิก');b.type='button';b.addEventListener('click',()=>{delete moved[d.bank];delete ticked[d.bank];delete picked[d.bank];render();});act.append(b);}
+  tr.append(act);tb.append(tr);
+ });
+ if(!rows.length){const tr=mk('tr'),td=mk('td',null,'ยังไม่มีธนาคารที่เชื่อมต่อแล้ว');td.colSpan=4;tr.append(td);tb.append(tr);}
+}
+function renderNo(s){
+ const tb=$('#list-no');
+ const rows=[...s.no].sort((a,b)=>a.code.localeCompare(b.code));
+ tb.replaceChildren();
+ rows.forEach((d)=>{
+  const tr=mk('tr');
+  tr.append(mk('td','bk-code',d.code),mk('td',null,d.bank));
+  const td=mk('td');
+  const lab=mk('label','bk-chk');
+  const cb=mk('input');cb.type='checkbox';cb.checked=!!ticked[d.bank];
+  cb.setAttribute('aria-label','ธนาคารแจ้งว่าเชื่อมต่อแล้ว: '+d.bank);
+  cb.addEventListener('change',()=>{ticked[d.bank]=cb.checked;if(cb.checked&&!picked[d.bank])picked[d.bank]=todayStr();renderNo(split());});
+  lab.append(cb,mk('span',null,'เชื่อมต่อแล้ว'));td.append(lab);
+  if(ticked[d.bank]){
+   const box=mk('div','bk-move');
+   const inp=mk('input','bk-date');inp.type='date';inp.min='2020-01-01';inp.max='2100-12-31';inp.value=picked[d.bank]||todayStr();
+   inp.setAttribute('aria-label','วันที่เชื่อมต่อ: '+d.bank);
+   inp.addEventListener('change',()=>{if(inp.value&&inp.validity.valid){picked[d.bank]=inp.value;inp.style.borderColor='';}});
+   const btn=mk('button','bk-btn','ยืนยัน ย้ายไปฝั่งเชื่อมต่อแล้ว');btn.type='button';
+   btn.addEventListener('click',()=>{if(inp.value&&inp.validity.valid){moved[d.bank]=inp.value;render();}else{inp.style.borderColor='var(--color-bad)';inp.focus();}});
+   box.append(inp,btn);td.append(box);
+  }
+  tr.append(td);tb.append(tr);
+ });
+ if(!rows.length){const tr=mk('tr'),t2=mk('td',null,'ทุกธนาคารเชื่อมต่อแล้ว');t2.colSpan=3;tr.append(t2);tb.append(tr);}
+}
+function render(){const s=split();renderTop(s);renderYes(s);renderNo(s);}
+render();
+</script>
+</body>
+</html>
