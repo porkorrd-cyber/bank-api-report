@@ -71,6 +71,7 @@ button:disabled{opacity:.5;cursor:progress}
 .no .chip{background:#fde7c7;color:#92400e}
 .nm{font-weight:500;overflow-wrap:anywhere}
 .yes .nm::before{content:'✓';color:var(--ok);font-weight:700;margin-right:8px}
+.ab{display:inline-block;margin-left:8px;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#e8ecf7;color:var(--muted);vertical-align:middle;white-space:nowrap}
 .date{min-width:9em;text-align:right;color:var(--muted);white-space:nowrap}
 .bk-day{display:inline-block;min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
 .bk-mon{margin-left:.35em}
@@ -135,7 +136,7 @@ dialog input:focus{outline:2px solid var(--brand);outline-offset:1px}
 <div class="dots" id="dots" aria-label="สถานะรายธนาคาร"></div>
 </header>
 <div class="toolbar">
-<div class="search" id="search"><span class="ic">&#128269;</span><input id="q" type="search" placeholder="ค้นหาชื่อธนาคารหรือรหัส" aria-label="ค้นหาธนาคาร" autocomplete="off"><button class="clr" id="clr" type="button" aria-label="ล้างคำค้น">&#10005;</button></div>
+<div class="search" id="search"><span class="ic">&#128269;</span><input id="q" type="search" placeholder="ค้นหาชื่อธนาคาร รหัส หรืออักษรย่อ (เช่น KTB)" aria-label="ค้นหาธนาคาร" autocomplete="off"><button class="clr" id="clr" type="button" aria-label="ล้างคำค้น">&#10005;</button></div>
 <label class="sort">เรียงฝั่งเชื่อมต่อแล้ว <select id="sort"><option value="date">วันที่ล่าสุดก่อน</option><option value="code">ตามรหัสธนาคาร</option></select></label>
 </div>
 <main class="cols" id="cols" data-f="all">
@@ -146,7 +147,7 @@ dialog input:focus{outline:2px solid var(--brand);outline-offset:1px}
 <dialog id="pinDlg"><form id="pinForm" method="dialog"><h3>ใส่รหัส PIN</h3><p>ใส่รหัสเพื่อยืนยันการบันทึกข้อมูล</p><input id="pinIn" type="password" autocomplete="off" aria-label="รหัส PIN"><div class="dlg-acts"><button class="btn" type="button" id="pinNo">ยกเลิก</button><button class="btn brand" type="submit">ตกลง</button></div></form></dialog>
 <div class="toast" id="toast" role="status"></div>
 <script>
-const BANKS=[{"code": "004", "bank": "ธนาคารกสิกรไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "011", "bank": "ธนาคารทหารไทยธนชาต", "status": "Live แล้ว", "target_date": "2026-10-07"}, {"code": "020", "bank": "ธนาคารสแตนดาร์ดชาร์เตอร์ด (ไทย)", "status": "Live แล้ว", "target_date": "2026-11-04"}, {"code": "022", "bank": "ธนาคารซีไอเอ็มบี ไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "025", "bank": "ธนาคารกรุงศรีอยุธยา", "status": "Live แล้ว", "target_date": "2026-11-11"}, {"code": "002", "bank": "ธนาคารกรุงเทพ", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "006", "bank": "ธนาคารกรุงไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "014", "bank": "ธนาคารไทยพาณิชย์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "024", "bank": "ธนาคารยูโอบี", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "030", "bank": "ธนาคารออมสิน", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "033", "bank": "ธนาคารอาคารสงเคราะห์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "034", "bank": "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "035", "bank": "ธนาคารเพื่อการส่งออกและนำเข้าแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "052", "bank": "ธนาคารแห่งประเทศจีน (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "066", "bank": "ธนาคารอิสลามแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "067", "bank": "ธนาคารทิสโก้", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "069", "bank": "ธนาคารเกียรตินาคินภัทร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "070", "bank": "ธนาคารไอซีบีซี (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "071", "bank": "ธนาคารไทยเครดิต", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "073", "bank": "ธนาคารแลนด์ แอนด์ เฮ้าส์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "098", "bank": "ธนาคารพัฒนาวิสาหกิจขนาดกลางและขนาดย่อมแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}];
+const BANKS=[{"code": "004", "bank": "ธนาคารกสิกรไทย จำกัด (มหาชน)", "abbr": "Kbank", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "011", "bank": "ธนาคารทหารไทยธนชาต จำกัด (มหาชน)", "abbr": "TTB", "status": "Live แล้ว", "target_date": "2026-10-07"}, {"code": "020", "bank": "ธนาคารสแตนดาร์ดชาร์เตอร์ด (ไทย) จำกัด (มหาชน)", "abbr": "SC", "status": "Live แล้ว", "target_date": "2026-11-04"}, {"code": "022", "bank": "ธนาคารซีไอเอ็มบี ไทย จำกัด (มหาชน)", "abbr": "CIMB", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "025", "bank": "ธนาคารกรุงศรีอยุธยา จำกัด (มหาชน)", "abbr": "BAY", "status": "Live แล้ว", "target_date": "2026-11-11"}, {"code": "002", "bank": "ธนาคารกรุงเทพ จำกัด (มหาชน)", "abbr": "BBL", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "006", "bank": "ธนาคารกรุงไทย จำกัด (มหาชน)", "abbr": "KTB", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "014", "bank": "ธนาคารไทยพาณิชย์ จำกัด (มหาชน)", "abbr": "SCB", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "024", "bank": "ธนาคารยูโอบี จำกัด (มหาชน)", "abbr": "UOB", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "030", "bank": "ธนาคารออมสิน", "abbr": "GSB", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "033", "bank": "ธนาคารอาคารสงเคราะห์", "abbr": "GHB", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "034", "bank": "ธนาคารเพื่อการเกษตร และสหกรณ์การเกษตร", "abbr": "BAAC", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "035", "bank": "ธนาคารเพื่อการส่งออกและนำเข้าแห่งประเทศไทย", "abbr": "EXIM", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "052", "bank": "ธนาคารแห่งประเทศจีน (ไทย) จำกัด (มหาชน)", "abbr": "BOC", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "066", "bank": "ธนาคารอิสลามแห่งประเทศไทย", "abbr": "iBank", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "067", "bank": "ธนาคารทิสโก้ จำกัด (มหาชน)", "abbr": "TISCO", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "069", "bank": "ธนาคารเกียรตินาคินภัทร จำกัด (มหาชน)", "abbr": "KKPFG", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "070", "bank": "ธนาคารไอซีบีซี (ไทย) จำกัด (มหาชน)", "abbr": "ICBC", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "071", "bank": "ธนาคารไทยเครดิต จำกัด (มหาชน)", "abbr": "TCRBank", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "073", "bank": "ธนาคารแลนด์ แอนด์ เฮ้าส์ จำกัด (มหาชน)", "abbr": "LHBank", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "098", "bank": "ธนาคารพัฒนาวิสาหกิจขนาดกลางและขนาดย่อมแห่งประเทศไทย", "abbr": "SMEBank", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}];
 const YES='Live แล้ว';
 const API='https://script.google.com/macros/s/AKfycbyCzfFzyQ5sms9pdH0DLfYI0_-yfDfi67KDBIF140UYcMthvJ4SBg2uk-uL1SXpyowf/exec';
 let over={},ticked={},picked={},editing={},confirming={},flash={};
@@ -177,8 +178,8 @@ function split(){
  const yes=[],no=[];
  BANKS.forEach((r)=>{
   const ov=over[r.code];
-  if(ov&&ov!=='none')yes.push({bank:r.bank,code:r.code,date:ov});
-  else if(!ov&&r.status===YES)yes.push({bank:r.bank,code:r.code,date:r.target_date});
+  if(ov&&ov!=='none')yes.push({bank:r.bank,abbr:r.abbr,code:r.code,date:ov});
+  else if(!ov&&r.status===YES)yes.push({bank:r.bank,abbr:r.abbr,code:r.code,date:r.target_date});
   else no.push(r);
  });
  return {yes,no};
@@ -196,7 +197,7 @@ function renderTop(s){
  const dots=$('#dots');dots.replaceChildren();
  BANKS.slice().sort((a,b)=>a.code.localeCompare(b.code)).forEach((b)=>{
   const d=mk('button','dot'+(okSet.has(b.code)?' ok':''));d.type='button';
-  d.title=b.code+' '+b.bank+(okSet.has(b.code)?' · เชื่อมต่อแล้ว':' · อยู่ระหว่างการเชื่อมต่อ');
+  d.title=b.code+' '+b.abbr+' '+b.bank+(okSet.has(b.code)?' · เชื่อมต่อแล้ว':' · อยู่ระหว่างการเชื่อมต่อ');
   d.setAttribute('aria-label',d.title);
   d.addEventListener('click',()=>{query=b.code;filter='all';$('#q').value=query;render();$('#cols').scrollIntoView({behavior:'smooth',block:'start'});});
   dots.append(d);
@@ -224,6 +225,7 @@ async function save(code,date){
   busy(false);return true;
  }catch(e){toast('บันทึกไม่สำเร็จ กรุณาลองใหม่',true);busy(false);return false;}
 }
+const nameEl=(d)=>{const e=mk('span','nm');e.append(document.createTextNode(d.bank));if(d.abbr)e.append(mk('span','ab',d.abbr));return e;};
 const btn=(cls,text,fn,tip)=>{const b=mk('button','btn '+cls,text);b.type='button';if(tip)b.title=tip;b.addEventListener('click',fn);return b;};
 function markFlash(code){flash[code]=true;setTimeout(()=>{delete flash[code];},1500);}
 async function cancelBank(d){
@@ -233,13 +235,13 @@ async function cancelBank(d){
  delete ticked[d.bank];delete picked[d.bank];delete editing[d.code];delete confirming[d.code];
  toast('ย้าย '+d.bank+' กลับไปฝั่งอยู่ระหว่างการเชื่อมต่อแล้ว');render();
 }
-const match=(r)=>{const q=query.trim().toLowerCase();return !q||(r.code+' '+r.bank).toLowerCase().includes(q);};
+const match=(r)=>{const q=query.trim().toLowerCase();return !q||(r.code+' '+r.bank+' '+(r.abbr||'')).toLowerCase().includes(q);};
 function renderYes(s){
  const ul=$('#list-yes');ul.replaceChildren();
  const rows=s.yes.filter(match).sort((a,b)=>sortBy==='code'?a.code.localeCompare(b.code):((b.date||'').localeCompare(a.date||'')||a.code.localeCompare(b.code)));
  rows.forEach((d)=>{
   const li=mk('li','card yes'+(flash[d.code]?' flash':''));
-  li.append(mk('span','chip',d.code),mk('span','nm',d.bank));
+  li.append(mk('span','chip',d.code),nameEl(d));
   const dt=mk('span','date');const box=mk('div','acts');
   if(editing[d.code]){
    const inp=mk('input','dinp');inp.type='date';inp.min='2020-01-01';inp.max='2100-12-31';inp.value=d.date||todayStr();
@@ -271,7 +273,7 @@ function renderNo(s){
  const rows=s.no.filter(match).sort((a,b)=>a.code.localeCompare(b.code));
  rows.forEach((d)=>{
   const li=mk('li','card no');
-  li.append(mk('span','chip',d.code),mk('span','nm',d.bank));
+  li.append(mk('span','chip',d.code),nameEl(d));
   const lab=mk('label','sw');
   const cb=mk('input');cb.type='checkbox';cb.checked=!!ticked[d.bank];
   cb.setAttribute('aria-label','ธนาคารแจ้งว่าเชื่อมต่อแล้ว: '+d.bank);
