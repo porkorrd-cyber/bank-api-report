@@ -48,6 +48,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
 .bk-date{font:inherit;padding:4px 6px;border:1px solid var(--color-border-line);border-radius:var(--radius);background:var(--color-bg);color:var(--color-fg)}
 .bk-btn{font:inherit;font-size:var(--fs-caption);padding:5px 12px;border:0;border-radius:var(--radius);background:var(--color-ok);color:#fff;font-weight:500;cursor:pointer}
 .bk-undo{font:inherit;font-size:var(--fs-caption);padding:3px 10px;border:1px solid var(--color-border-line);border-radius:var(--radius);background:transparent;color:var(--color-fg-muted);cursor:pointer}
+.bk-acts{display:flex;gap:6px;flex-wrap:wrap}
 .bk-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -68,10 +69,11 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
 <script>
 const BANKS=[{"code": "004", "bank": "ธนาคารกสิกรไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "011", "bank": "ธนาคารทหารไทยธนชาต", "status": "Live แล้ว", "target_date": "2026-10-07"}, {"code": "020", "bank": "ธนาคารสแตนดาร์ดชาร์เตอร์ด (ไทย)", "status": "Live แล้ว", "target_date": "2026-11-04"}, {"code": "022", "bank": "ธนาคารซีไอเอ็มบี ไทย", "status": "Live แล้ว", "target_date": "2026-10-15"}, {"code": "025", "bank": "ธนาคารกรุงศรีอยุธยา", "status": "Live แล้ว", "target_date": "2026-11-11"}, {"code": "002", "bank": "ธนาคารกรุงเทพ", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "006", "bank": "ธนาคารกรุงไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "014", "bank": "ธนาคารไทยพาณิชย์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "024", "bank": "ธนาคารยูโอบี", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "030", "bank": "ธนาคารออมสิน", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "033", "bank": "ธนาคารอาคารสงเคราะห์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "034", "bank": "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "035", "bank": "ธนาคารเพื่อการส่งออกและนำเข้าแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "052", "bank": "ธนาคารแห่งประเทศจีน (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "066", "bank": "ธนาคารอิสลามแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "067", "bank": "ธนาคารทิสโก้", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "069", "bank": "ธนาคารเกียรตินาคินภัทร", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "070", "bank": "ธนาคารไอซีบีซี (ไทย)", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "071", "bank": "ธนาคารไทยเครดิต", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "073", "bank": "ธนาคารแลนด์ แอนด์ เฮ้าส์", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}, {"code": "098", "bank": "ธนาคารพัฒนาวิสาหกิจขนาดกลางและขนาดย่อมแห่งประเทศไทย", "status": "อยู่ระหว่างการเชื่อมต่อ", "target_date": null}];
 const YES='Live แล้ว';
-let moved={},ticked={},picked={};
+let over={},ticked={},picked={},editing={};
 const $=(s)=>document.querySelector(s);
 const mk=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const isLive=(code)=>BANKS.some((b)=>b.code===code&&b.status===YES);
 function dateInto(td,s){
  if(!s){td.textContent='—';return;}
  const parts=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).formatToParts(new Date(String(s).slice(0,10)+'T00:00:00Z'));
@@ -81,8 +83,9 @@ function dateInto(td,s){
 function split(){
  const yes=[],no=[];
  BANKS.forEach((r)=>{
-  if(r.status===YES)yes.push({bank:r.bank,code:r.code,date:r.target_date,undo:false});
-  else if(moved[r.bank])yes.push({bank:r.bank,code:r.code,date:moved[r.bank],undo:true});
+  const ov=over[r.code];
+  if(ov&&ov!=='none')yes.push({bank:r.bank,code:r.code,date:ov});
+  else if(!ov&&r.status===YES)yes.push({bank:r.bank,code:r.code,date:r.target_date});
   else no.push(r);
  });
  return {yes,no};
@@ -96,6 +99,14 @@ function renderTop(s){
  for(let i=0;i<t;i++)bar.append(mk('i','bk-seg'+(i<n?' on':'')+(i===n-1?' last':'')));
  g.append(bar,mk('div','bk-pct',pct+'%'));
 }
+async function cancelBank(d){
+ if(!confirm('ย้าย '+d.bank+' กลับไปฝั่งอยู่ระหว่างการเชื่อมต่อ ใช่หรือไม่?'))return;
+ const v=isLive(d.code)?'none':null;
+ if(!(await save(d.code,v)))return;
+ if(v)over[d.code]=v;else delete over[d.code];
+ delete ticked[d.bank];delete picked[d.bank];delete editing[d.code];
+ render();
+}
 function renderYes(s){
  const tb=$('#list-yes');
  const rows=[...s.yes].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||a.code.localeCompare(b.code));
@@ -103,10 +114,29 @@ function renderYes(s){
  rows.forEach((d)=>{
   const tr=mk('tr');
   tr.append(mk('td','bk-code',d.code),mk('td','bk-yes-b',d.bank));
-  const dt=mk('td');dateInto(dt,d.date);tr.append(dt);
-  const act=mk('td');
-  if(d.undo){const b=mk('button','bk-undo','ยกเลิก');b.type='button';b.addEventListener('click',async()=>{if(!(await save(d.code,null)))return;delete moved[d.bank];delete ticked[d.bank];delete picked[d.bank];render();});act.append(b);}
-  tr.append(act);tb.append(tr);
+  const dt=mk('td');const act=mk('td');const box=mk('div','bk-acts');
+  if(editing[d.code]){
+   const inp=mk('input','bk-date');inp.type='date';inp.min='2020-01-01';inp.max='2100-12-31';inp.value=d.date||todayStr();
+   inp.setAttribute('aria-label','แก้ไขวันที่เชื่อมต่อ: '+d.bank);
+   dt.append(inp);
+   const ok=mk('button','bk-btn','บันทึก');ok.type='button';
+   ok.addEventListener('click',async()=>{
+    if(!(inp.value&&inp.validity.valid)){inp.style.borderColor='var(--color-bad)';inp.focus();return;}
+    if(!(await save(d.code,inp.value)))return;
+    over[d.code]=inp.value;delete editing[d.code];render();
+   });
+   const no=mk('button','bk-undo','ยกเลิกการแก้ไข');no.type='button';
+   no.addEventListener('click',()=>{delete editing[d.code];render();});
+   box.append(ok,no);
+  }else{
+   dateInto(dt,d.date);
+   const ed=mk('button','bk-undo','แก้ไขวันที่');ed.type='button';
+   ed.addEventListener('click',()=>{editing[d.code]=true;render();});
+   const cn=mk('button','bk-undo','ยกเลิก');cn.type='button';
+   cn.addEventListener('click',()=>{cancelBank(d);});
+   box.append(ed,cn);
+  }
+  act.append(box);tr.append(dt,act);tb.append(tr);
  });
  if(!rows.length){const tr=mk('tr'),td=mk('td',null,'ยังไม่มีธนาคารที่เชื่อมต่อแล้ว');td.colSpan=4;tr.append(td);tb.append(tr);}
 }
@@ -129,7 +159,7 @@ function renderNo(s){
    inp.setAttribute('aria-label','วันที่เชื่อมต่อ: '+d.bank);
    inp.addEventListener('change',()=>{if(inp.value&&inp.validity.valid){picked[d.bank]=inp.value;inp.style.borderColor='';}});
    const btn=mk('button','bk-btn','ยืนยัน ย้ายไปฝั่งเชื่อมต่อแล้ว');btn.type='button';
-   btn.addEventListener('click',async()=>{if(inp.value&&inp.validity.valid){if(!(await save(d.code,inp.value)))return;moved[d.bank]=inp.value;render();}else{inp.style.borderColor='var(--color-bad)';inp.focus();}});
+   btn.addEventListener('click',async()=>{if(inp.value&&inp.validity.valid){if(!(await save(d.code,inp.value)))return;over[d.code]=inp.value;render();}else{inp.style.borderColor='var(--color-bad)';inp.focus();}});
    box.append(inp,btn);td.append(box);
   }
   tr.append(td);tb.append(tr);
@@ -153,7 +183,7 @@ async function save(code,date){
 async function load(){
  try{
   const r=await fetch(API);const j=await r.json();
-  if(j&&j.ok){BANKS.forEach((b)=>{if(b.status!==YES&&j.moved[b.code])moved[b.bank]=j.moved[b.code];});render();}
+  if(j&&j.ok){over=j.moved||{};render();}
  }catch(e){}
 }
 render();
